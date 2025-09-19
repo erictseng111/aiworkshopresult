@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>私享旅遊平台客服機器人優化工作坊 - 成果報告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Deep Ocean -->
+    <!-- Application Structure Plan: The application is designed as a top-down interactive dashboard. It starts with a high-level summary (key metrics & priority chart), allowing users to grasp the main outcomes instantly. Then, it offers drill-down capabilities into thematic sections: 'Customer Scenarios/Intents' (using an interactive filter to manage the 63 scenarios), 'Solution Flows' (using an accordion-style reveal for detailed prototypes), and a clear 'Action Plan' visualization. This structure was chosen over a linear report format to empower PMs and consultants to quickly access the information most relevant to them, facilitating non-linear exploration and making the dense data highly consumable and user-friendly. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Prioritization votes. -> Goal: Compare priorities. -> Viz: Horizontal Bar Chart. -> Interaction: Hover tooltips for vote counts. -> Justification: Best for comparing discrete items with long labels. -> Library: Chart.js.
+        2. Report Info: 63 scenarios grouped into 14 intents. -> Goal: Organize & Explore. -> Viz: Two-column layout with a filter list and dynamic content pane. -> Interaction: Click intent to filter scenarios. -> Justification: Manages large text data effectively, preventing overload. -> Library/Method: Vanilla JS DOM manipulation.
+        3. Report Info: 8 detailed flow prototypes. -> Goal: Present complex solutions clearly. -> Viz: Interactive accordion cards. -> Interaction: Click to expand/collapse details. -> Justification: Progressive disclosure keeps the UI clean. -> Library/Method: Vanilla JS.
+        4. Report Info: Next steps. -> Goal: Inform roadmap. -> Viz: Phased timeline/card layout. -> Interaction: None, static visual. -> Justification: Clearly visualizes the project sequence. -> Library/Method: HTML/Tailwind CSS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+        }
+        .card-expand-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.5s ease-out;
+        }
+        .card-expand-content.expanded {
+            grid-template-rows: 1fr;
+        }
+        .card-expand-content > div {
+            overflow: hidden;
+        }
+        .intent-item.active {
+            background-color: #4a5568;
+            color: #f7fafc;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <header class="bg-gray-800 shadow-xl sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-gray-100">客服機器人優化工作坊</h1>
+                    <p class="text-sm text-gray-400">私享旅遊平台・成果報告</p>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#overview" class="nav-link text-gray-300 font-medium pb-1 border-b-2 border-transparent">總覽</a>
+                    <a href="#scenarios" class="nav-link text-gray-300 font-medium pb-1 border-b-2 border-transparent">客戶情境</a>
+                    <a href="#solutions" class="nav-link text-gray-300 font-medium pb-1 border-b-2 border-transparent">解決方案</a>
+                    <a href="#matrix" class="nav-link text-gray-300 font-medium pb-1 border-b-2 border-transparent">矩陣分析</a>
+                    <a href="#action-plan" class="nav-link text-gray-300 font-medium pb-1 border-b-2 border-transparent">後續行動</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        
+        <section id="overview" class="mb-16 scroll-mt-24">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-100">成果總覽</h2>
+            <p class="text-center text-gray-400 mb-10 max-w-2xl mx-auto">本次工作坊成功為客服機器人建立了系統性的優化藍圖，從情境發掘到方案落地，奠定了堅實基礎。</p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-center mb-12">
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl">
+                    <p class="text-4xl font-bold text-blue-400">63</p>
+                    <p class="text-gray-300 font-medium mt-1">個真實情境</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl">
+                    <p class="text-4xl font-bold text-blue-400">14</p>
+                    <p class="text-gray-300 font-medium mt-1">個核心意圖</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl">
+                    <p class="text-4xl font-bold text-blue-400">8</p>
+                    <p class="text-gray-300 font-medium mt-1">個流程原型</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl">
+                    <p class="text-4xl font-bold text-green-400">✅</p>
+                    <p class="text-gray-300 font-medium mt-1">確立優先級</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 md:p-8 rounded-xl shadow-xl">
+                <h3 class="text-xl font-bold text-center mb-1 text-gray-100">流程開發優先級</h3>
+                <p class="text-center text-gray-400 mb-6">根據團隊投票結果，確立了清晰的開發路線圖。</p>
+                <div class="chart-container">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="scenarios" class="mb-16 scroll-mt-24">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-100">客戶情境與核心意圖</h2>
+            <p class="text-center text-gray-400 mb-10 max-w-2xl mx-auto">我們從 63 個真實對話中，歸納出 14 個核心意圖類別。點擊左側意圖，可篩選右側對應的客戶真實提問。</p>
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-1/3">
+                    <div class="bg-gray-800 rounded-xl shadow-xl p-4 sticky top-24">
+                        <h4 class="font-bold text-lg mb-3 text-gray-100 px-2">核心意圖類別</h4>
+                        <ul id="intent-list" class="space-y-1"></ul>
+                    </div>
+                </div>
+                <div class="w-full md:w-2/3">
+                     <div id="scenario-display" class="space-y-3"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="solutions" class="mb-16 scroll-mt-24">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-100">解決方案：核心對話流程</h2>
+            <p class="text-center text-gray-400 mb-10 max-w-2xl mx-auto">針對關鍵痛點，我們設計了 8 個核心對話流程原型。點擊卡片可展開查看詳細的解決方案與機器人回應範例。</p>
+            <div id="solutions-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            </div>
+        </section>
+        
+        <section id="matrix" class="mb-16 scroll-mt-24">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-100">艾森豪矩陣流程分布</h2>
+            <p class="text-center text-gray-400 mb-10 max-w-2xl mx-auto">透過艾森豪矩陣分析，我們將各個流程的緊急性與重要性進行分類，以確立其在開發路線圖中的定位。</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Q1 -->
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl border-t-4 border-red-500">
+                    <h3 class="text-xl font-bold text-gray-100">🔥 Q1象限 (緊急且重要 - 立即執行)</h3>
+                    <ul class="mt-4 space-y-2 text-gray-300">
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-red-500">🔥</span>反應系統問題流程 <span class="text-gray-400 ml-auto"> (票數: 4)</span></li>
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-red-500">🔥</span>緊急狀況流程 <span class="text-gray-400 ml-auto"> (票數: 0)</span></li>
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-red-500">🔥</span>第三人入住流程 <span class="text-gray-400 ml-auto"> (票數: 0)</span></li>
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-red-500">🔥</span>優惠方案流程 <span class="text-gray-400 ml-auto"> (票數: 0)</span></li>
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-red-500">🔥</span>酒店資訊(平台內)流程 <span class="text-gray-400 ml-auto"> (票數: 4)</span></li>
+                    </ul>
+                </div>
+                <!-- Q2 -->
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl border-t-4 border-green-500">
+                    <h3 class="text-xl font-bold text-gray-100">⚡ Q2象限 (重要但不緊急 - 計劃執行)</h3>
+                    <ul class="mt-4 space-y-2 text-gray-300">
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-green-500">⚡</span>線下產品流程 <span class="text-gray-400 ml-auto"> (票數: 0)</span></li>
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-green-500">⚡</span>房型升等問題流程 <span class="text-gray-400 ml-auto"> (票數: 4)</span></li>
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-green-500">⚡</span>帳務相關流程 <span class="text-gray-400 ml-auto"> (票數: 0)</span></li>
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-green-500">⚡</span>酒店資訊(平台外)流程 <span class="text-gray-400 ml-auto"> (票數: 0)</span></li>
+                    </ul>
+                </div>
+                 <!-- Q3 -->
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl border-t-4 border-amber-500">
+                    <h3 class="text-xl font-bold text-gray-100">📋 Q3象限 (緊急但不重要 - 委派執行)</h3>
+                    <ul class="mt-4 space-y-2 text-gray-300">
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-amber-500">📋</span>抵用金相關流程 <span class="text-gray-400 ml-auto"> (票數: 0)</span></li>
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-amber-500">📋</span>訂單備註流程 <span class="text-gray-400 ml-auto"> (票數: 2)</span></li>
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-amber-500">📋</span>Loyalty Program流程 <span class="text-gray-400 ml-auto"> (票數: 1)</span></li>
+                    </ul>
+                </div>
+                <!-- Q4 -->
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl border-t-4 border-gray-400">
+                    <h3 class="text-xl font-bold text-gray-100">🗂️ Q4象限 (不緊急也不重要 - 可考慮刪除)</h3>
+                    <ul class="mt-4 space-y-2 text-gray-300">
+                        <li class="flex items-start"><span class="mr-2 mt-1 text-gray-400">🗂️</span>其他流程 <span class="text-gray-400 ml-auto"> (票數: 0)</span></li>
+                    </ul>
+                </div>
+            </div>
+            
+        </section>
+
+        <section id="action-plan" class="scroll-mt-24">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-100">後續行動 (Next Actions)</h2>
+            <p class="text-center text-gray-400 mb-10 max-w-2xl mx-auto">工作坊的結束是專案的開始。下一步將由 Eric 和顧問負責人推動以下事項：</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl border-t-4 border-blue-600">
+                    <h3 class="text-xl font-bold my-2 text-gray-100">1. 資訊數位化與整理</h3>
+                    <p class="text-gray-300">將工作坊產出的所有資訊（便利貼、流程圖、艾森豪矩陣）進行數位化整理，創建一份結構化的任務清單。</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl border-t-4 border-amber-500">
+                    <h3 class="text-xl font-bold my-2 text-gray-100">2. 任務拆解與規劃</h3>
+                    <p class="text-gray-300">基於艾森豪矩陣，將第一、二象限的方案分解為具體任務，並明確各任務的 SMART Goals、負責人、時間表與所需資源。</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-xl shadow-xl border-t-4 border-green-500">
+                    <h3 class="text-xl font-bold my-2 text-gray-100">3. 團隊溝通與導入</h3>
+                    <p class="text-gray-300">這份任務清單將成為與技術團隊溝通、導入專案管理工具（如 Asana）的重要文件，確保每個環節都有人負責、有期限可追蹤。</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <footer class="text-center py-8 mt-12 border-t border-gray-700">
+        <p class="text-gray-500">私享旅遊平台客服機器人優化工作坊成果報告</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const workshopData = {
+                intents: [
+                    { id: 'all', name: '全部情境', count: 65 },
+                    { id: 'third-person', name: '第三人入住相關', count: 3, category: '住宿' },
+                    { id: 'offers', name: '優惠方案相關', count: 10, category: '優惠與費用' },
+                    { id: 'upgrade', name: '房型升等問題', count: 2, category: '住宿' },
+                    { id: 'hotel-info-in', name: '酒店資訊(平台內)', count: 5, category: '住宿' },
+                    { id: 'remarks', name: '訂單備註相關', count: 5, category: '住宿' },
+                    { id: 'emergency', name: '緊急狀況', count: 2, category: '系統與緊急' },
+                    { id: 'credit', name: '抵用金相關', count: 8, category: '優惠與費用' },
+                    { id: 'billing', name: '帳務相關', count: 6, category: '優惠與費用' },
+                    { id: 'loyalty', name: 'Loyalty Program', count: 8, category: '服務與支援' },
+                    { id: 'misc', name: '其他雜項', count: 3, category: '其他' },
+                    { id: 'hotel-info-out', name: '酒店資訊(平台外)', count: 3, category: '住宿' },
+                    { id: 'system-issues', name: '反應系統問題', count: 2, category: '系統與緊急' },
+                    { id: 'extra-services', name: '其他額外服務', count: 3, category: '服務與支援' },
+                    { id: 'offline-products', name: '線下產品', count: 4, category: '服務與支援' }
+                ],
+                scenarios: [
+                    { intent: 'third-person', text: "這個房型可以加床嗎？" },
+                    { intent: 'third-person', text: "第三人入住要錢嗎" },
+                    { intent: 'third-person', text: "這個房型可以加床嗎? 可以住2大2小嗎?" },
+                    { intent: 'offers', text: "跟私享訂&跟其他人訂(官網、挖土、美運)有什麼差別?" },
+                    { intent: 'offers', text: "這個價格包含早餐嗎？" },
+                    { intent: 'offers', text: "明年有優惠嗎" },
+                    { intent: 'offers', text: "私享禮遇跟私享禮遇85哲的差別是什麼?" },
+                    { intent: 'offers', text: "我可以延後退房嗎？" },
+                    { intent: 'offers', text: "這個優惠方案會延長嗎?" },
+                    { intent: 'offers', text: "明年6月會有什麼方案?" },
+                    { intent: 'offers', text: "保證升等方案(已顯示)，還會再升等嗎" },
+                    { intent: 'offers', text: "保證升等方案(是預訂房況)，要怎麼知道有沒有升等" },
+                    { intent: 'offers', text: "曼谷有什麼優惠方案嗎" },
+                    { intent: 'offers', text: "我預訂住4付三方案，但我實際只要入住3晚，額外一晚是否可以折抵三晚房費?" },
+                    { intent: 'upgrade', text: "房型會升到哪間" },
+                    { intent: 'upgrade', text: "訂這個房間會升到哪一個等級" },
+                    { intent: 'hotel-info-in', text: "請問三臥室villa，幾張床，附幾份早餐？我們如果有小孩加床，要額外付費嗎？" },
+                    { intent: 'hotel-info-in', text: "請問此2大2小的房型可以住2大3小嗎? 我不加床，可以大家睡一起" },
+                    { intent: 'hotel-info-in', text: "哪一間酒店可以睡2大2小?" },
+                    { intent: 'hotel-info-in', text: "我2大3小可以住這個房型嗎？" },
+                    { intent: 'hotel-info-in', text: "xx酒店 一晚多少錢" },
+                    { intent: 'remarks', text: "可以幫我備註xxxx嗎？" },
+                    { intent: 'remarks', text: "我找不到地方備註" },
+                    { intent: 'remarks', text: "可以寄包裹到酒店嗎" },
+                    { intent: 'remarks', text: "可以幫我訂餐廳嗎" },
+                    { intent: 'remarks', text: "我無法在平台上備註訂單" },
+                    { intent: 'emergency', text: "想確認一下 若遇颱風 會怎麼處理？" },
+                    { intent: 'emergency', text: "我生病、家人出事、XXXX，因此無法入住怎麼辦" },
+                    { intent: 'credit', text: "我們有的xxxx抵用金，是需要一次性使用嗎？酒店抵用金 還是是在這次訂房期間用完即可？" },
+                    { intent: 'credit', text: "抵用金是每日USD 100 嗎?" },
+                    { intent: 'credit', text: "抵用金可以抵酒廊費用嗎?" },
+                    { intent: 'credit', text: "抵用金可以用在哪裡" },
+                    { intent: 'credit', text: "同日期訂兩筆，都有抵用金嗎?" },
+                    { intent: 'credit', text: "為什麼我訂不到我要的方案?" },
+                    { intent: 'credit', text: "還有附送的餐飲抵用金能抵兩個小孩的早餐費用嗎？" },
+                    { intent: 'credit', text: "我2大3小可以住這個房型嗎？" },
+                    { intent: 'billing', text: "住宿可以打統編嗎？" },
+                    { intent: 'billing', text: "我退房了但是帳單有問題" },
+                    { intent: 'billing', text: "我收到刷卡通知，請問是酒店刷的嗎？" },
+                    { intent: 'billing', text: "我訂的是可以取消方案，但為甚麼酒店已經刷我的信用卡" },
+                    { intent: 'billing', text: "我想換信用卡支付" },
+                    { intent: 'billing', text: "訂金什麼時候支付?" },
+                    { intent: 'loyalty', text: "訂單沒有出現在會員app" },
+                    { intent: 'loyalty', text: "可以用飯店升等卷升等嗎" },
+                    { intent: 'loyalty', text: "可以累積飯店會員嗎" },
+                    { intent: 'loyalty', text: "我已完成入住，但點數還沒有累積，可以幫我查嗎?" },
+                    { intent: 'loyalty', text: "會籍禮遇可疊加(擇優)是什麼意思" },
+                    { intent: 'loyalty', text: "可以累積SNP嗎" },
+                    { intent: 'loyalty', text: "我的訂單什麼時候會出現在app" },
+                    { intent: 'loyalty', text: "在私享平台預訂可以使用我原本的酒店匯集禮遇嗎?" },
+                    { intent: 'misc', text: "我看現在的房價比我訂的時候便宜，可以幫我調整嗎？" },
+                    { intent: 'misc', text: "我一人入住，額外的早餐是否可以扣除我的房費呢?" },
+                    { intent: 'misc', text: "我入住的時候要過生日，飯店會準備什麼？有優惠嗎？" },
+                    { intent: 'hotel-info-out', text: "另外房間有免治馬桶嗎？" },
+                    { intent: 'hotel-info-out', text: "櫃檯是否有中文check in 服務？" },
+                    { intent: 'hotel-info-out', text: "接送機多少錢?" },
+                    { intent: 'system-issues', text: "我取消不了我的訂單?" },
+                    { intent: 'system-issues', text: "現在xx酒店訂不了房" },
+                    { intent: 'extra-services', text: "你們可以做客製化行程嗎? 員工旅遊可以安排嗎" },
+                    { intent: 'extra-services', text: "環宇通關多少錢? 你們有優惠嗎" },
+                    { intent: 'offline-products', text: "預訂RC yachat, 請問哪一個房型有浴缸?" },
+                    { intent: 'offline-products', text: "有今年10月的航線嗎? 天數只能4天，要很近的地方" },
+                    { intent: 'offline-products', text: "郵輪建議多久前預訂最划算" },
+                    { intent: 'offline-products', text: "訂郵輪可以連機票/延伸行程/接送 一起安排嗎" },
+                    { intent: 'offline-products', text: "xxxx航線要不要辦簽證 / 你們可以幫忙辦簽證嗎" }
+                ],
+                solutions: [
+                    { 
+                        title: '抵用金相關流程', 
+                        painPoint: '客戶想透過分批訂單獲得多次抵用金',
+                        solution: '4輪對話，預期客戶策略並提前說明規則',
+                        customerQuestion: '住兩晚有200抵用金嗎？可以分兩筆訂單嗎？',
+                        botResponse: '清楚說明"單次住宿限制"，即使分批訂單也僅提供一次抵用金'
+                    },
+                    { 
+                        title: '房型升等問題流程', 
+                        painPoint: '客戶期待明確的升等承諾',
+                        solution: '4輪對話，管理期待並提供替代解決方案',
+                        customerQuestion: '會升等到什麼房型？什麼時候知道結果？',
+                        botResponse: '說明"視房況升等"政策，建議直接聯繫酒店預訂部'
+                    },
+                    { 
+                        title: '保證升等確認流程', 
+                        painPoint: '不同升等方案的混淆',
+                        solution: '4輪對話，使用按鈕分流精準回應',
+                        customerQuestion: '保證升等方案要怎麼確認？',
+                        botResponse: '按鈕選項 [視房況升等 | 已顯示升等] → 給予對應說明'
+                    },
+                    { 
+                        title: '訂單備註流程', 
+                        painPoint: '客戶依賴客服代為備註特殊需求',
+                        solution: '4輪對話，引導自助並推廣高階服務',
+                        customerQuestion: '幫我備註生日蛋糕，你不能幫我備註嗎？',
+                        botResponse: '提供教學圖引導自助 + 推廣私享會個人化服務'
+                    },
+                    { 
+                        title: '系統問題回報流程', 
+                        painPoint: '技術問題難以標準化處理',
+                        solution: '5輪對話，系統性收集問題並有備案',
+                        customerQuestion: '預訂10分鐘都不成功！我不會截圖...',
+                        botResponse: '先請求截圖 → 無法提供時啟動備案追蹤機制'
+                    },
+                    { 
+                        title: '線下產品(簽證諮詢)流程', 
+                        painPoint: '簽證需求因航線和國籍而異',
+                        solution: '4輪對話，雙層按鈕精準分類',
+                        customerQuestion: '這個航線需要簽證嗎？',
+                        botResponse: '[選擇航線: 北歐|地中海|南極|亞洲] → [選擇護照: 台灣|美國|其他]'
+                    },
+                    { 
+                        title: '緊急狀況流程', 
+                        painPoint: '不可抗力因素的標準化處理',
+                        solution: '2輪對話，建立標準SOP',
+                        customerQuestion: '颱風來了怎麼辦？好危險...',
+                        botResponse: '標準化流程說明團隊將協助聯繫酒店確認後續事宜'
+                    },
+                    { 
+                        title: '其他額外服務(客製化旅遊)流程', 
+                        painPoint: '客製化需求複雜且資訊收集困難',
+                        solution: '6輪對話，先介紹現有服務再收集需求',
+                        customerQuestion: '20人要去曼谷5天，可以安排客製化行程嗎？',
+                        botResponse: '介紹平台服務 → 收集詳細需求 → 提供表單連結'
+                    }
+                ],
+                priorities: {
+                    labels: ['房型升等問題', '反應系統問題', '酒店資訊(平台內)', '訂單備註', 'Loyalty Program'],
+                    votes: [4, 4, 4, 2, 1]
+                }
+            };
+
+            const ctx = document.getElementById('priorityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: workshopData.priorities.labels,
+                    datasets: [{
+                        label: '團隊投票數',
+                        data: workshopData.priorities.votes,
+                        backgroundColor: [
+                            '#60a5fa', '#60a5fa', '#60a5fa', 
+                            '#fcd34d', '#9ca3af'
+                        ],
+                        borderColor: [
+                            '#3b82f6', '#3b82f6', '#3b82f6',
+                            '#fbbf24', '#6b7280'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                color: '#a0aec0'
+                            },
+                            grid: {
+                                color: 'rgba(128, 128, 128, 0.2)'
+                            }
+                        },
+                        y: {
+                             ticks: {
+                                color: '#a0aec0'
+                            },
+                            grid: {
+                                color: 'rgba(128, 128, 128, 0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` 票數: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const intentList = document.getElementById('intent-list');
+            const scenarioDisplay = document.getElementById('scenario-display');
+
+            function renderIntents() {
+                intentList.innerHTML = '';
+                workshopData.intents.forEach(intent => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <button data-intent-id="${intent.id}" class="intent-item w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 hover:bg-gray-700 flex justify-between items-center">
+                            <span>${intent.name}</span>
+                            <span class="text-xs bg-gray-700 text-gray-300 rounded-full px-2 py-0.5">${intent.count}</span>
+                        </button>
+                    `;
+                    intentList.appendChild(li);
+                });
+            }
+
+            function renderScenarios(filterIntentId = 'all') {
+                scenarioDisplay.innerHTML = '';
+                const filteredScenarios = filterIntentId === 'all'
+                    ? workshopData.scenarios
+                    : workshopData.scenarios.filter(s => s.intent === filterIntentId);
+                
+                filteredScenarios.forEach(scenario => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-700';
+                    div.textContent = scenario.text;
+                    scenarioDisplay.appendChild(div);
+                });
+            }
+
+            intentList.addEventListener('click', function(e) {
+                const button = e.target.closest('.intent-item');
+                if (button) {
+                    const intentId = button.dataset.intentId;
+                    renderScenarios(intentId);
+
+                    document.querySelectorAll('.intent-item').forEach(item => item.classList.remove('active'));
+                    button.classList.add('active');
+                }
+            });
+            
+            const solutionsContainer = document.getElementById('solutions-container');
+            workshopData.solutions.forEach(solution => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 rounded-xl shadow-xl cursor-pointer transition-shadow hover:shadow-2xl';
+                card.innerHTML = `
+                    <div class="card-expand-trigger p-6 flex justify-between items-center">
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-100">${solution.title}</h4>
+                            <p class="text-sm text-gray-400 mt-1"><strong>痛點：</strong>${solution.painPoint}</p>
+                        </div>
+                        <button class="expand-btn w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-700 transition-transform duration-500">
+                           <span class="transform transition-transform duration-500 expand-icon">▼</span>
+                        </button>
+                    </div>
+                    <div class="card-expand-content px-6 pb-6">
+                        <div class="border-t border-gray-700 pt-4">
+                            <p class="font-semibold text-gray-300 mb-1">📋 解決方案</p>
+                            <p class="text-gray-400 mb-3">${solution.solution}</p>
+                            <p class="font-semibold text-gray-300 mb-1">💬 客戶常問</p>
+                            <p class="text-gray-400 bg-gray-900 p-2 rounded-md mb-3 italic">"${solution.customerQuestion}"</p>
+                            <p class="font-semibold text-gray-300 mb-1">🤖 機器人回應</p>
+                            <p class="text-gray-400 bg-blue-950 p-2 rounded-md">${solution.botResponse}</p>
+                        </div>
+                    </div>
+                `;
+                solutionsContainer.appendChild(card);
+            });
+
+            solutionsContainer.addEventListener('click', function(e) {
+                const trigger = e.target.closest('.card-expand-trigger');
+                if (trigger) {
+                    const content = trigger.nextElementSibling;
+                    const expandBtn = trigger.querySelector('.expand-icon');
+                    content.classList.toggle('expanded');
+                    expandBtn.classList.toggle('rotate-180');
+                }
+            });
+
+            renderIntents();
+            renderScenarios();
+            document.querySelector('.intent-item[data-intent-id="all"]').classList.add('active');
+
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.toggle('active', link.getAttribute('href').substring(1) === entry.target.id);
+                        });
+                    }
+                });
+            }, { rootMargin: "-50% 0px -50% 0px" });
+
+            sections.forEach(section => observer.observe(section));
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelector(link.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
